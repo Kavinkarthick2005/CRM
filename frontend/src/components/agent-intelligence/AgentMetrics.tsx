@@ -15,8 +15,9 @@ export default function AgentMetrics() {
   const [metrics, setMetrics] = useState<MetricsData | null>(null);
 
   useEffect(() => {
+    const CRM_URL = process.env.NEXT_PUBLIC_CRM_URL || "http://localhost:8000";
     // In a real app, this would poll the /api/agent-logs/metrics endpoint
-    fetch("http://localhost:8000/api/agent-logs/metrics")
+    fetch(`${CRM_URL}/api/agent-logs/metrics`)
       .then((res) => res.json())
       .then((data) => setMetrics(data))
       .catch((err) => console.error("Failed to load agent metrics", err));

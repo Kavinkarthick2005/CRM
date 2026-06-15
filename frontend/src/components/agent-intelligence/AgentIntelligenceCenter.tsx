@@ -19,9 +19,11 @@ export default function AgentIntelligenceCenter({ campaignId }: AgentIntelligenc
 
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
+  const CRM_URL = process.env.NEXT_PUBLIC_CRM_URL || "http://localhost:8000";
+
   const fetchDemoData = async () => {
     try {
-      const res = await fetch("http://localhost:8000/api/agent-logs/demo");
+      const res = await fetch(`${CRM_URL}/api/agent-logs/demo`);
       const data = await res.json();
       setLogs(data.logs || []);
       setCurrentStep(0);
@@ -34,8 +36,8 @@ export default function AgentIntelligenceCenter({ campaignId }: AgentIntelligenc
   const fetchCampaignData = async (id: number) => {
     try {
       const [logsRes, statsRes] = await Promise.all([
-        fetch(`http://localhost:8000/api/agent-logs/campaign/${id}`),
-        fetch(`http://localhost:8000/api/campaigns/${id}/stats`)
+        fetch(`${CRM_URL}/api/agent-logs/campaign/${id}`),
+        fetch(`${CRM_URL}/api/campaigns/${id}/stats`)
       ]);
       const logsData = await logsRes.json();
       const statsData = await statsRes.json();

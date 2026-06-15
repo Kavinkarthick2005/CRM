@@ -60,7 +60,8 @@ export default function CustomerProfilePage({ params }: { params: Promise<{ id: 
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_CRM_URL}/api/customers/${id}`);
+        const CRM_URL = process.env.NEXT_PUBLIC_CRM_URL || "http://localhost:8000";
+        const res = await fetch(`${CRM_URL}/api/customers/${id}`);
         if (!res.ok) throw new Error("Failed to fetch customer profile");
         const json = await res.json();
         setData(json);
