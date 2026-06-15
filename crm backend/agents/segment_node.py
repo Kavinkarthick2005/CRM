@@ -1,6 +1,7 @@
 from agents.state import CampaignState
 from langchain_core.runnables import RunnableConfig
 from agents.segment_agent import run_segment_primary, run_segment_fallback
+from agents.logger import log_agent_start, log_agent_complete
 
 async def segment_node(state: CampaignState, config: RunnableConfig) -> dict:
     llm = config["configurable"]["llm"]
@@ -9,15 +10,18 @@ async def segment_node(state: CampaignState, config: RunnableConfig) -> dict:
     
     # If intent failed entirely, we might not have it. The orchestrator conditional edge 
     # should ideally catch failed agents, but just in case, we still try.
+    log_id = log_agent_start(state["execution_group_id"], "Segment Agent", state.get("campaign_id"))
     try:
         result = await run_segment_primary(llm, intent_output, rag_context)
         print("[🧩 Segment] Primary segment built successfully")
+        log_agent_complete(log_id, "completed", fallback_used=False)
         return {"segment_query": result.get("segment_query")}
     except Exception as e:
         print(f"[🧩 Segment] Primary failed: {e}")
         try:
             result = await run_segment_fallback(llm, intent_output, rag_context)
             print("[🧩 Segment] Fallback segment built successfully")
+            log_agent_complete(log_id, "completed", fallback_used=True, notes=str(e))
             return {
                 "segment_query": result.get("segment_query"),
                 "fallback_used": True,
@@ -25,6 +29,7 @@ async def segment_node(state: CampaignState, config: RunnableConfig) -> dict:
             }
         except Exception as e2:
             print(f"[🧩 Segment] Both primary and fallback failed: {e2}")
+            log_agent_complete(log_id, "failed", fallback_used=True, notes=str(e2))
             return {
                 "failed_agents": state.get("failed_agents", []) + ["segment"],
                 "error_log": state.get("error_log", []) + [f"Segment fallback error: {e2}"]

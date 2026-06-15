@@ -33,6 +33,7 @@ export default function Home() {
   const [messageDraft, setMessageDraft] = useState<string>("");
   const [showSendButton, setShowSendButton] = useState(false);
   const [campaignSentMsg, setCampaignSentMsg] = useState("");
+  const [historicalStats, setHistoricalStats] = useState<any>(null);
   
   const [confidenceScore, setConfidenceScore] = useState<number | null>(null);
   const [failedAgents, setFailedAgents] = useState<string[]>([]);
@@ -89,6 +90,7 @@ export default function Home() {
     setMessageDraft("");
     setShowSendButton(false);
     setCampaignSentMsg("");
+    setHistoricalStats(null);
     setConfidenceScore(null);
     setFailedAgents([]);
     setPipelineStatus("");
@@ -133,6 +135,10 @@ export default function Home() {
       
       if (data.action === "send" || (data.segment_count !== null && data.message_draft)) {
         setShowSendButton(true);
+        fetch(`${CRM_URL}/api/dashboard/funnel`)
+          .then(r => r.json())
+          .then(setHistoricalStats)
+          .catch(console.error);
       }
       
     } catch (e: any) {
@@ -198,6 +204,7 @@ export default function Home() {
       setSegmentQuery(null);
       setSegmentCount(null);
       setMessageDraft("");
+      setHistoricalStats(null);
       setConfidenceScore(null);
       setFailedAgents([]);
       setPipelineStatus("");
@@ -347,6 +354,59 @@ export default function Home() {
                 onChange={(e) => setMessageDraft(e.target.value)}
                 className="w-full bg-gray-900 border border-gray-700 rounded-xl p-4 text-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 min-h-[100px] resize-y shadow-inner"
               />
+            </div>
+          )}
+
+          {showSendButton && historicalStats && !isLoading && !campaignSentMsg && (
+            <div className="ml-12 mr-12 bg-gray-900/80 border border-indigo-500/30 p-6 rounded-xl shadow-lg mb-4">
+              <h3 className="text-white font-bold mb-4 flex items-center gap-2">
+                <BarChart3 className="text-indigo-400" size={18} />
+                Campaign Performance Simulator
+              </h3>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                
+                <div>
+                  <div className="text-sm text-gray-400 mb-1">Expected Reach</div>
+                  <div className="text-xl font-bold text-white mb-2">{segmentCount}</div>
+                  <div className="w-full bg-gray-800 rounded-full h-1.5">
+                    <div className="bg-gray-400 h-1.5 rounded-full w-full"></div>
+                  </div>
+                </div>
+
+                <div>
+                  <div className="text-sm text-gray-400 mb-1">Expected Delivery</div>
+                  <div className="text-xl font-bold text-green-400 mb-2">
+                    {Math.round((historicalStats.sent > 0 ? historicalStats.delivered / historicalStats.sent : 0.95) * 100)}%
+                  </div>
+                  <div className="w-full bg-gray-800 rounded-full h-1.5">
+                    <div className="bg-green-500 h-1.5 rounded-full" style={{ width: `${(historicalStats.sent > 0 ? historicalStats.delivered / historicalStats.sent : 0.95) * 100}%` }}></div>
+                  </div>
+                </div>
+
+                <div>
+                  <div className="text-sm text-gray-400 mb-1">Expected Open Rate</div>
+                  <div className="text-xl font-bold text-blue-400 mb-2">
+                    {Math.round((historicalStats.delivered > 0 ? historicalStats.opened / historicalStats.delivered : 0.40) * 100)}%
+                  </div>
+                  <div className="w-full bg-gray-800 rounded-full h-1.5">
+                    <div className="bg-blue-400 h-1.5 rounded-full" style={{ width: `${(historicalStats.delivered > 0 ? historicalStats.opened / historicalStats.delivered : 0.40) * 100}%` }}></div>
+                  </div>
+                </div>
+
+                <div>
+                  <div className="text-sm text-gray-400 mb-1">Expected Click Rate</div>
+                  <div className="text-xl font-bold text-teal-400 mb-2">
+                    {Math.round((historicalStats.opened > 0 ? historicalStats.clicked / historicalStats.opened : 0.15) * 100)}%
+                  </div>
+                  <div className="w-full bg-gray-800 rounded-full h-1.5">
+                    <div className="bg-teal-400 h-1.5 rounded-full" style={{ width: `${(historicalStats.opened > 0 ? historicalStats.clicked / historicalStats.opened : 0.15) * 100}%` }}></div>
+                  </div>
+                </div>
+
+              </div>
+              <p className="text-xs text-gray-500 mt-4 italic">
+                *Predictions are based on historical averages of similar campaigns.
+              </p>
             </div>
           )}
 

@@ -1,6 +1,10 @@
 from typing import TypedDict, Optional
 
 class CampaignState(TypedDict):
+    # Tracking
+    execution_group_id: str
+    campaign_id: Optional[int]
+
     # Input
     user_message: str
     rag_context: dict

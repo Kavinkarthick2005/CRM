@@ -19,46 +19,69 @@ async def update_comm_status(comm_id: int, outcome: str, db: Session):
         comm.status = outcome
         db.commit()
 
-async def fake_delivery_simulation(comm_id: int, db: Session):
-    await asyncio.sleep(random.uniform(1, 3))
-    
-    # Simulate outcome
-    outcome = random.choices(['delivered', 'failed'], weights=[85, 15])[0]
-    await update_comm_status(comm_id, outcome, db)
-    
-    # Simulate engagement
-    if outcome == 'delivered':
-        await asyncio.sleep(random.uniform(2, 6))
-        if random.random() < 0.4:
-            await update_comm_status(comm_id, 'opened', db)
-            if random.random() < 0.25:
-                await asyncio.sleep(1)
-                await update_comm_status(comm_id, 'clicked', db)
+async def fake_delivery_simulation(comm_id: int):
+    db = SessionLocal()
+    try:
+        await asyncio.sleep(random.uniform(1, 3))
+        
+        # Simulate outcome
+        outcome = random.choices(['delivered', 'failed'], weights=[85, 15])[0]
+        await update_comm_status(comm_id, outcome, db)
+        
+        # Simulate engagement
+        if outcome == 'delivered':
+            await asyncio.sleep(random.uniform(2, 6))
+            if random.random() < 0.4:
+                await update_comm_status(comm_id, 'opened', db)
+                if random.random() < 0.25:
+                    await asyncio.sleep(1)
+                    await update_comm_status(comm_id, 'clicked', db)
+    except Exception as e:
+        print(f"[Error] Fake delivery failed for comm {comm_id}: {e}")
+    finally:
+        db.close()
 
-async def send_to_channel_service(communications: list, message_text: str):
+async def send_to_channel_service(campaign_id: int, comm_ids: list, message_text: str):
     import main
     db = SessionLocal()
     try:
         async with httpx.AsyncClient() as client:
-            for comm in communications:
-                if not main.CHANNEL_SERVICE_AVAILABLE:
-                    print(f"[⚠️ Channel] Service offline, using fake delivery for {comm.id}")
-                    asyncio.create_task(fake_delivery_simulation(comm.id, db))
+            for comm_id in comm_ids:
+                fresh_comm = db.query(Communication).filter(Communication.id == comm_id).first()
+                if not fresh_comm:
                     continue
                     
-                receipt_url = "http://localhost:8000/api/receipt"
+                customer_id = fresh_comm.customer_id
+                channel = fresh_comm.customer.channel_preference if fresh_comm.customer else "email"
+                
+                # Transition to 'sent' immediately
+                fresh_comm.status = "sent"
+                db.commit()
+                
+                if not main.CHANNEL_SERVICE_AVAILABLE:
+                    print(f"[⚠️ Channel] Service offline, using fake delivery for {comm_id}")
+                    asyncio.create_task(fake_delivery_simulation(comm_id))
+                    continue
+                    
+                receipt_url = "http://127.0.0.1:8000/api/receipt"
                 payload = {
-                    "comm_id": comm.id,
-                    "customer_id": comm.customer_id,
+                    "comm_id": comm_id,
+                    "customer_id": customer_id,
                     "message": message_text,
-                    "channel": comm.customer.channel_preference,
+                    "channel": channel,
                     "crm_receipt_url": receipt_url
                 }
                 try:
                     await client.post(f"{CHANNEL_SERVICE_URL}/send", json=payload, timeout=5.0)
                 except Exception as e:
-                    print(f"[⚠️ Channel] Service unreachable ({e}), using fake delivery for {comm.id}")
-                    asyncio.create_task(fake_delivery_simulation(comm.id, db))
+                    print(f"[⚠️ Channel] Service unreachable ({e}), using fake delivery for {comm_id}")
+                    asyncio.create_task(fake_delivery_simulation(comm_id))
+                    
+        # Update campaign status
+        campaign = db.query(Campaign).filter(Campaign.id == campaign_id).first()
+        if campaign:
+            campaign.status = "completed"
+            db.commit()
     finally:
         db.close()
 
@@ -109,7 +132,8 @@ async def send_campaign(id: int, background_tasks: BackgroundTasks, db: Session 
     for comm in comms:
         db.refresh(comm)
         
-    background_tasks.add_task(send_to_channel_service, comms, campaign.message_text)
+    comm_ids = [c.id for c in comms]
+    background_tasks.add_task(send_to_channel_service, campaign.id, comm_ids, campaign.message_text)
     
     return {
         "campaign_id": campaign.id,
@@ -140,7 +164,8 @@ async def list_campaigns(db: Session = Depends(get_db)):
             delivered=stats["delivered"],
             failed=stats["failed"],
             opened=stats["opened"],
-            clicked=stats["clicked"]
+            clicked=stats["clicked"],
+            created_at=c.created_at
         ))
     return results
 

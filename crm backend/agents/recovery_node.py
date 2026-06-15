@@ -1,5 +1,6 @@
 from agents.state import CampaignState
 from langchain_core.runnables import RunnableConfig
+from agents.logger import log_agent_start, log_agent_complete
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import PydanticOutputParser
 from pydantic import BaseModel, Field
@@ -12,6 +13,7 @@ class RecoveryOutput(BaseModel):
     channel: str = Field(description="sms, email, or whatsapp")
 
 async def recovery_node(state: CampaignState, config: RunnableConfig) -> dict:
+    log_id = log_agent_start(state["execution_group_id"], "Recovery Agent", state.get("campaign_id"))
     print("[🔧 Recovery] attempting...")
     llm = config["configurable"]["llm"]
     user_message = state.get("user_message", "")
@@ -36,6 +38,7 @@ async def recovery_node(state: CampaignState, config: RunnableConfig) -> dict:
         })
         
         print("[🔧 Recovery] succeeded")
+        log_agent_complete(log_id, "completed", fallback_used=False)
         return {
             "segment_query": result.segment_query,
             "message_draft": result.message_draft,
@@ -46,6 +49,7 @@ async def recovery_node(state: CampaignState, config: RunnableConfig) -> dict:
         }
     except Exception as e:
         print(f"[🔧 Recovery] Failed: {e}")
+        log_agent_complete(log_id, "failed", fallback_used=False, notes=str(e))
         return {
             "error_log": state.get("error_log", []) + [f"Recovery error: {e}"]
         }

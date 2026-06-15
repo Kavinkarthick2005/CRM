@@ -1,4 +1,5 @@
 from agents.state import CampaignState
+from agents.logger import log_agent_start, log_agent_complete
 
 def calculate_confidence(state: CampaignState) -> int:
     score = 100
@@ -30,6 +31,8 @@ def calculate_confidence(state: CampaignState) -> int:
     return max(min(score, 100), 10)
 
 def validator_node(state: CampaignState) -> dict:
+    log_id = log_agent_start(state["execution_group_id"], "Validator Agent", state.get("campaign_id"))
+    
     message_draft = state.get("message_draft", "")
     segment_query = state.get("segment_query", {})
     channel = state.get("channel", "sms")
@@ -56,6 +59,8 @@ def validator_node(state: CampaignState) -> dict:
     confidence_score = calculate_confidence(state)
     
     print(f"[✅ Validator] passed | confidence: {confidence_score}%")
+    
+    log_agent_complete(log_id, "completed", fallback_used=False, confidence_score=confidence_score)
     
     return {
         "message_draft": message_draft,

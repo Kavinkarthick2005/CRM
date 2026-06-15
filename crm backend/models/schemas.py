@@ -61,6 +61,7 @@ class CampaignStats(BaseModel):
     failed: int
     opened: int
     clicked: int
+    created_at: datetime | None = None
 
 class ReceiptWebhook(BaseModel):
     comm_id: int

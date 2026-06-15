@@ -9,6 +9,7 @@ from langchain_groq import ChatGroq
 from langchain_core.runnables import RunnableConfig
 
 from agents.state import CampaignState
+from agents.logger import generate_execution_group_id, log_agent_start, log_agent_complete
 from agents.rag_fetcher import fetch_context
 from agents.intent_node import intent_node
 from agents.segment_node import segment_node
@@ -18,10 +19,15 @@ from agents.recovery_node import recovery_node
 from agents.emergency_node import emergency_node
 
 async def rag_node(state: CampaignState, config: RunnableConfig):
-    db = config["configurable"]["db"]
-    context = await fetch_context(db)
-    # Logging is now handled inside fetch_context natively per Prompt 2
-    return {"rag_context": context}
+    log_id = log_agent_start(state["execution_group_id"], "RAG Agent", state.get("campaign_id"))
+    try:
+        db = config["configurable"]["db"]
+        context = await fetch_context(db)
+        log_agent_complete(log_id, "completed", fallback_used=False, notes=f"Fetched {len(context.get('stats', {}).keys())} stat groups")
+        return {"rag_context": context}
+    except Exception as e:
+        log_agent_complete(log_id, "failed", fallback_used=False, notes=str(e))
+        raise e
 
 def should_recover(state: CampaignState) -> str:
     if len(state.get('failed_agents', [])) > 0:
@@ -81,8 +87,11 @@ class CampaignOrchestrator:
         
         return graph.compile()
 
-    async def run(self, user_message: str, db) -> dict:
+    async def run(self, user_message: str, db, campaign_id: int = None) -> dict:
+        execution_group_id = generate_execution_group_id()
         initial_state = CampaignState(
+            execution_group_id=execution_group_id,
+            campaign_id=campaign_id,
             user_message=user_message,
             rag_context={},
             intent=None,
@@ -117,5 +126,6 @@ class CampaignOrchestrator:
             "confidence_score": result.get('confidence_score'),
             "status": result.get('status'),
             "fallback_used": result.get('fallback_used'),
-            "failed_agents": result.get('failed_agents')
+            "failed_agents": result.get('failed_agents'),
+            "execution_group_id": execution_group_id
         }
