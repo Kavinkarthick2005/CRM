@@ -1,0 +1,48 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: crm
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  channel-service:
+    build:
+      context: ./channel service
+    ports:
+      - "8001:8001"
+    restart: unless-stopped
+
+  crm-backend:
+    build: 
+      context: ./crm backend
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql://postgres:password@postgres:5432/crm
+      - CHANNEL_SERVICE_URL=http://channel-service:8001
+      - GROQ_API_KEY=${GROQ_API_KEY}
+    depends_on:
+      - postgres
+      - channel-service
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_CRM_URL=http://localhost:8000
+    depends_on:
+      - crm-backend
+    restart: unless-stopped
+
+volumes:
+  pgdata:
