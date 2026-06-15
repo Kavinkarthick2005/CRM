@@ -12,6 +12,7 @@ export interface TimelineEvent {
   duration_ms: number | null;
   status: string; // 'completed', 'executing', 'failed'
   fallback_used?: boolean;
+  confidence_score?: number;
 }
 
 interface AgentTimelineProps {
