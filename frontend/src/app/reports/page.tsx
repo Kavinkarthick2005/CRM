@@ -34,7 +34,7 @@ export default function ReportsPage() {
   }, [CRM_URL]);
 
   return (
-    <div className="min-h-screen bg-gray-900 text-gray-200 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="flex-1 w-full min-h-screen bg-gray-900 text-gray-200 py-12 px-4 sm:px-6 lg:px-8">
       <div className="w-full px-8 mx-auto space-y-10">
         
         {/* Header section */}

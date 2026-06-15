@@ -100,7 +100,7 @@ export default function CustomerProfilePage({ params }: { params: Promise<{ id: 
   };
 
   return (
-    <div className="min-h-screen bg-[#0d0d12] text-white p-8">
+    <div className="flex-1 w-full min-h-screen bg-[#0d0d12] text-white p-8">
       <div className="w-full space-y-8">
         
         {/* HEADER SECTION */}
