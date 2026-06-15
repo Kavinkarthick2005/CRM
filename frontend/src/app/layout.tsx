@@ -102,9 +102,9 @@ export default async function RootLayout({
           </div>
         </header>
 
-        <div className="flex-1 w-full flex">
+        <main className="flex-1 w-full flex flex-col">
           {children}
-        </div>
+        </main>
         
         <Toaster 
           position="top-center"
