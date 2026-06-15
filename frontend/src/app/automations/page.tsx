@@ -92,7 +92,7 @@ export default function AutomationsPage() {
   const totalFired = automations.reduce((acc, a) => acc + a.times_fired, 0);
 
   return (
-    <div className="flex-1 w-full max-w-6xl mx-auto py-8 px-8 animate-fade-in text-gray-200">
+    <div className="flex-1 w-full py-8 px-8 animate-fade-in text-gray-200">
       <div className="flex justify-between items-start mb-8">
         <div className="flex items-center gap-3">
           <div className="p-3 bg-indigo-500/20 rounded-xl border border-indigo-500/30 text-indigo-400">

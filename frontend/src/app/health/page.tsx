@@ -54,7 +54,7 @@ export default function SystemHealthPage() {
   };
 
   return (
-    <div className="flex-1 w-full max-w-6xl mx-auto py-8 px-8 animate-fade-in text-gray-200">
+    <div className="flex-1 w-full py-8 px-8 animate-fade-in text-gray-200">
       <div className="flex items-center gap-3 mb-8">
         <div className="p-3 bg-emerald-500/20 rounded-xl border border-emerald-500/30 text-emerald-400">
           <Activity size={24} />

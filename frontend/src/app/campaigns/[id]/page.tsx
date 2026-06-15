@@ -62,7 +62,7 @@ export default function CampaignDetailPage({ params }: { params: Promise<{ id: s
 
   if (isLoading) {
     return (
-      <div className="w-full py-8 max-w-6xl mx-auto flex justify-center items-center h-64">
+      <div className="w-full px-8 py-8 mx-auto flex justify-center items-center h-64">
         <div className="w-8 h-8 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin"></div>
       </div>
     );
@@ -70,7 +70,7 @@ export default function CampaignDetailPage({ params }: { params: Promise<{ id: s
 
   if (!data) {
     return (
-      <div className="w-full py-8 max-w-6xl mx-auto text-center text-gray-500">
+      <div className="w-full px-8 py-8 mx-auto text-center text-gray-500">
         Campaign not found.
       </div>
     );
@@ -90,7 +90,7 @@ export default function CampaignDetailPage({ params }: { params: Promise<{ id: s
   ];
 
   return (
-    <div className="flex-1 w-full py-8 max-w-6xl mx-auto space-y-8 px-8 animate-fade-in">
+    <div className="flex-1 w-full py-8 px-8 space-y-8 animate-fade-in">
       <Link href="/campaigns" className="inline-flex items-center gap-2 text-emerald-400 hover:text-emerald-300 font-medium transition-colors">
         <ArrowLeft size={16} />
         Back to Campaigns

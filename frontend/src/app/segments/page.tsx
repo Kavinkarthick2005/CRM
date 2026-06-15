@@ -45,7 +45,7 @@ export default function SegmentsPage() {
   }
 
   return (
-    <div className="flex-1 w-full max-w-7xl mx-auto py-8 px-8 animate-fade-in text-gray-200">
+    <div className="flex-1 w-full py-8 px-8 animate-fade-in text-gray-200">
       <div className="flex justify-between items-center mb-8">
         <div>
           <h1 className="text-3xl font-bold text-white tracking-tight flex items-center gap-3 mb-2">

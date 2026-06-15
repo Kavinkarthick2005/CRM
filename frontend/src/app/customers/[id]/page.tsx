@@ -100,10 +100,10 @@ export default function CustomerProfilePage({ params }: { params: Promise<{ id: 
   };
 
   return (
-    <div className="flex-1 w-full min-h-screen bg-[#0d0d12] text-white p-8 animate-fade-in pb-20">
-      <div className="max-w-6xl mx-auto space-y-8">
+    <div className="min-h-screen bg-[#0d0d12] text-white p-8">
+      <div className="w-full space-y-8">
         
-        {/* TOP NAVIGATION */}
+        {/* HEADER SECTION */}
         <div>
           <Link href="/customers" className="inline-flex items-center gap-2 text-sm text-gray-400 hover:text-white transition-colors mb-6">
             <ArrowLeft className="w-4 h-4" /> Back to Customers

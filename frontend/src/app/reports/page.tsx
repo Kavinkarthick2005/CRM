@@ -34,10 +34,10 @@ export default function ReportsPage() {
   }, [CRM_URL]);
 
   return (
-    <div className="flex-1 w-full min-h-screen bg-[#0d0d12] text-white p-8 animate-fade-in pb-20">
-      <div className="max-w-6xl mx-auto space-y-10">
+    <div className="min-h-screen bg-gray-900 text-gray-200 py-12 px-4 sm:px-6 lg:px-8">
+      <div className="w-full px-8 mx-auto space-y-10">
         
-        {/* HEADER */}
+        {/* Header section */}
         <div>
           <h1 className="text-3xl font-bold tracking-tight mb-2 flex items-center gap-3">
             <FileText className="w-8 h-8 text-indigo-400" /> Reporting Center

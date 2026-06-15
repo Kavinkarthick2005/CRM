@@ -114,7 +114,7 @@ export default function CampaignsPage() {
   }, [campaigns]);
 
   return (
-    <div className="flex-1 w-full py-8 max-w-6xl mx-auto px-8 animate-fade-in">
+    <div className="flex-1 w-full py-8 px-8 animate-fade-in text-white">
       <div className="flex items-center justify-between mb-8">
         <div className="flex items-center gap-3">
           <div className="p-3 bg-emerald-500/20 rounded-xl border border-emerald-500/30 text-emerald-400">

@@ -50,7 +50,7 @@ export default async function RootLayout({
       <body className={`${inter.className} bg-gray-900 text-gray-50 min-h-screen flex flex-col`}>
         <CurrencyProvider>
         <header className="sticky top-0 z-50 bg-gray-900/80 backdrop-blur-md border-b border-gray-800">
-          <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
+          <div className="w-full px-8 h-16 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-emerald-500 to-teal-500 flex items-center justify-center font-bold text-white shadow-[0_0_15px_rgba(99,102,241,0.5)]">
                 W
@@ -121,7 +121,7 @@ export default async function RootLayout({
               },
             },
           }}
-        </Toaster>
+        />
         </CurrencyProvider>
       </body>
     </html>

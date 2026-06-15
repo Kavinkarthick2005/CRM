@@ -80,10 +80,10 @@ export default function CustomersPage() {
   };
 
   return (
-    <div className="flex-1 w-full min-h-screen bg-[#0d0d12] text-white p-8 animate-fade-in pb-20">
-      <div className="max-w-7xl mx-auto space-y-8">
+    <div className="min-h-screen bg-[#0d0d12] text-white p-8">
+      <div className="w-full space-y-8">
         
-        {/* HEADER */}
+        {/* HEADER SECTION */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-[#15151a] p-8 rounded-2xl border border-white/5 relative overflow-hidden">
           <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/10 rounded-full blur-[80px] -z-10" />
           <div>
