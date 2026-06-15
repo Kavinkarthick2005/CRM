@@ -25,27 +25,30 @@ async def update_comm_status(comm_id: int, outcome: str, db: Session):
             db.rollback()
             await asyncio.sleep(0.5)
 
+simulation_semaphore = asyncio.Semaphore(5)
+
 async def fake_delivery_simulation(comm_id: int):
-    db = SessionLocal()
-    try:
-        await asyncio.sleep(random.uniform(1, 3))
+    async with simulation_semaphore:
+        db = SessionLocal()
+        try:
+            await asyncio.sleep(random.uniform(1, 3))
         
-        # Simulate outcome
-        outcome = random.choices(['delivered', 'failed'], weights=[85, 15])[0]
-        await update_comm_status(comm_id, outcome, db)
-        
-        # Simulate engagement
-        if outcome == 'delivered':
-            await asyncio.sleep(random.uniform(2, 6))
-            if random.random() < 0.4:
-                await update_comm_status(comm_id, 'opened', db)
-                if random.random() < 0.25:
-                    await asyncio.sleep(1)
-                    await update_comm_status(comm_id, 'clicked', db)
-    except Exception as e:
-        print(f"[Error] Fake delivery failed for comm {comm_id}: {e}")
-    finally:
-        db.close()
+            # Simulate outcome
+            outcome = random.choices(['delivered', 'failed'], weights=[85, 15])[0]
+            await update_comm_status(comm_id, outcome, db)
+            
+            # Simulate engagement
+            if outcome == 'delivered':
+                await asyncio.sleep(random.uniform(2, 6))
+                if random.random() < 0.4:
+                    await update_comm_status(comm_id, 'opened', db)
+                    if random.random() < 0.25:
+                        await asyncio.sleep(1)
+                        await update_comm_status(comm_id, 'clicked', db)
+        except Exception as e:
+            print(f"[Error] Fake delivery failed for comm {comm_id}: {e}")
+        finally:
+            db.close()
 
 async def send_to_channel_service(campaign_id: int, comm_ids: list, message_text: str):
     import main
