@@ -273,7 +273,17 @@ export default function Dashboard() {
             <div className="h-64 w-full">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
-                  <Pie data={channels} dataKey="count" nameKey="channel" cx="50%" cy="50%" innerRadius={60} outerRadius={90} paddingAngle={5} label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}>
+                  <Pie 
+                    data={channels} 
+                    dataKey="count" 
+                    nameKey="channel" 
+                    cx="50%" 
+                    cy="50%" 
+                    innerRadius={60} 
+                    outerRadius={90} 
+                    paddingAngle={5} 
+                    label={({ name, percent }) => `${name} ${(percent ? percent * 100 : 0).toFixed(0)}%`}
+                  >
                     {channels.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                     ))}
