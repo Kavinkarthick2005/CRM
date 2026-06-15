@@ -1,0 +1,12 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: var(--font-inter);
+}
+
+@layer base {
+  body {
+    background-color: theme('colors.gray.900');
+    color: theme('colors.gray.50');
+  }
+}
