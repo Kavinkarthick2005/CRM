@@ -14,10 +14,16 @@ router = APIRouter()
 CHANNEL_SERVICE_URL = os.getenv("CHANNEL_SERVICE_URL", "http://localhost:8001")
 
 async def update_comm_status(comm_id: int, outcome: str, db: Session):
-    comm = db.query(Communication).filter(Communication.id == comm_id).first()
-    if comm:
-        comm.status = outcome
-        db.commit()
+    for _ in range(5):
+        try:
+            comm = db.query(Communication).filter(Communication.id == comm_id).first()
+            if comm:
+                comm.status = outcome
+                db.commit()
+            break
+        except Exception:
+            db.rollback()
+            await asyncio.sleep(0.5)
 
 async def fake_delivery_simulation(comm_id: int):
     db = SessionLocal()
@@ -47,16 +53,23 @@ async def send_to_channel_service(campaign_id: int, comm_ids: list, message_text
     try:
         async with httpx.AsyncClient() as client:
             for comm_id in comm_ids:
-                fresh_comm = db.query(Communication).filter(Communication.id == comm_id).first()
-                if not fresh_comm:
+                for _ in range(5):
+                    try:
+                        fresh_comm = db.query(Communication).filter(Communication.id == comm_id).first()
+                        if not fresh_comm:
+                            break
+                            
+                        customer_id = fresh_comm.customer_id
+                        channel = fresh_comm.customer.channel_preference if fresh_comm.customer else "email"
+                        
+                        fresh_comm.status = "sent"
+                        db.commit()
+                        break
+                    except Exception:
+                        db.rollback()
+                        await asyncio.sleep(0.5)
+                else:
                     continue
-                    
-                customer_id = fresh_comm.customer_id
-                channel = fresh_comm.customer.channel_preference if fresh_comm.customer else "email"
-                
-                # Transition to 'sent' immediately
-                fresh_comm.status = "sent"
-                db.commit()
                 
                 if not main.CHANNEL_SERVICE_AVAILABLE:
                     print(f"[⚠️ Channel] Service offline, using fake delivery for {comm_id}")
@@ -78,10 +91,16 @@ async def send_to_channel_service(campaign_id: int, comm_ids: list, message_text
                     asyncio.create_task(fake_delivery_simulation(comm_id))
                     
         # Update campaign status
-        campaign = db.query(Campaign).filter(Campaign.id == campaign_id).first()
-        if campaign:
-            campaign.status = "completed"
-            db.commit()
+        for _ in range(5):
+            try:
+                campaign = db.query(Campaign).filter(Campaign.id == campaign_id).first()
+                if campaign:
+                    campaign.status = "completed"
+                    db.commit()
+                break
+            except:
+                db.rollback()
+                await asyncio.sleep(0.5)
     finally:
         db.close()
 
@@ -155,12 +174,13 @@ async def list_campaigns(db: Session = Depends(get_db)):
             if comm.status in stats:
                 stats[comm.status] += 1
                 
+        total_sent = stats["sent"] + stats["delivered"] + stats["failed"] + stats["opened"] + stats["clicked"]
         results.append(CampaignStats(
             id=c.id,
             name=c.name,
             status=c.status,
             total=len(comms),
-            sent=stats["sent"],
+            sent=total_sent,
             delivered=stats["delivered"],
             failed=stats["failed"],
             opened=stats["opened"],
